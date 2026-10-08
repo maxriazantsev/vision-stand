@@ -18,7 +18,7 @@ from pathlib import Path
 from ultralytics import YOLO
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-MODELS_DIR = REPO_ROOT / 'src' / 'detector' / 'models'
+MODELS_DIR = REPO_ROOT / 'perception' / 'src' / 'detector' / 'models'
 RESOLUTIONS = (320, 640)
 
 

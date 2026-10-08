@@ -35,6 +35,9 @@ vision-stand.service (the perception/ ROS graph)
   on-device object detection and the version overlay.
 - `agent/`: `updater.py`, the device-side process that pulls new releases
   and rolls back on a failed health check.
+- `scripts/`: `env.sh` sets up the ROS environment. `export_model.py` is a
+  one-time dev-machine script that exports YOLOv8n to ONNX at 320 and 640.
+  It needs PyTorch, so it never runs on the Pi.
 - `deploy/`: provisioning script, systemd units and the per-device env
   template.
 
@@ -49,7 +52,7 @@ vision-stand.service (the perception/ ROS graph)
 ## Quickstart
 
 ```bash
-git clone <repo-url> vision-stand && cd vision-stand
+git clone https://github.com/maxriazantsev/vision-stand && cd vision-stand
 source scripts/env.sh   # ROS environment + this project's ROS_DOMAIN_ID
 cd perception
 colcon build
@@ -83,6 +86,11 @@ Two ways, depending on who notices the problem first:
 - **Automatic**: after every swap, the device runs a health check against
   the freshly started container. If it fails, the device reverts to
   whatever it was running before, on its own, without waiting on a human.
+  The release that failed is remembered and skipped until a newer one is
+  published.
+
+The health check only proves camera frames arrive after a swap. It catches
+a crash, a missing camera or ROS not starting, but not wrong detections.
 
 A device can also be pinned to one version instead of following latest, by
 setting `PINNED_VERSION` in its `/etc/vision-stand/device.env`.

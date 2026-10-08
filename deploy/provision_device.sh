@@ -42,6 +42,7 @@ fi
 
 [[ -f /etc/vision-stand/device.env ]] || sudo cp /tmp/device.env.example /etc/vision-stand/device.env
 [[ -f /var/lib/vision-stand/current ]] || sudo touch /var/lib/vision-stand/current
+[[ -f /var/lib/vision-stand/bad ]] || sudo touch /var/lib/vision-stand/bad
 
 if [[ "$app_unit" == "vision-stand.service" ]]; then
   camera_source=$(ls /dev/v4l/by-id/*-video-index0 2>/dev/null | head -1 || true)

@@ -18,14 +18,12 @@ import urllib.request
 
 DEVICE_ENV_FILE = '/etc/vision-stand/device.env'
 CURRENT_VERSION_FILE = '/var/lib/vision-stand/current'
+BAD_VERSIONS_FILE = '/var/lib/vision-stand/bad'
 RELEASES_LATEST_URL = (
     'https://api.github.com/repos/maxriazantsev/vision-stand/releases/latest'
 )
 IMAGE_REPO = 'ghcr.io/maxriazantsev/vision-stand'
 APP_CONTAINER = 'vision-stand'
-# Every systemd unit that runs the versioned image and needs restarting on
-# a swap. Health is only checked against APP_CONTAINER; the others don't
-# have a health signal of their own.
 VERSIONED_SERVICES = ('vision-stand.service', 'vision-stand-foxglove.service')
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
@@ -104,11 +102,26 @@ def write_current_version(tag):
         f.write(f'{tag}\n')
 
 
+def read_bad_versions():
+    try:
+        with open(BAD_VERSIONS_FILE) as f:
+            return {line.strip() for line in f if line.strip()}
+    except FileNotFoundError:
+        return set()
+
+
+def record_bad_version(tag):
+    with open(BAD_VERSIONS_FILE, 'a') as f:
+        f.write(f'{tag}\n')
+
+
 def swap_to(tag):
-    """Pulls and switches the running container to `tag`, health-checks it,
-    and only records it as the current version if that passes, so
-    CURRENT_VERSION_FILE always reflects the last known-good version, never
-    a version that's currently failing its health check.
+    """Pulls `tag`, writes it to CURRENT_VERSION_FILE (the systemd units
+    read that file to pick which image to run, so it has to be written
+    before the restart), restarts the versioned services and health-checks
+    the result. Returns whether the health check passed. The file is not
+    reverted on failure; the caller rolls back by calling swap_to() again
+    with the previous tag.
     """
     image = f'{IMAGE_REPO}:{tag}'
     log.info(f'Pulling {image}')
@@ -128,8 +141,17 @@ def swap_to(tag):
 
 
 def main():
-    desired = desired_version()
     previous = current_tag()
+    try:
+        desired = desired_version()
+    except OSError:
+        # URLError, HTTPError and socket timeouts are all OSErrors.
+        log.error(f'Could not reach GitHub, staying on {previous!r}')
+        return
+
+    if desired in read_bad_versions():
+        log.info(f'Skipping {desired}, it failed its health check before')
+        return
 
     if previous == desired:
         log.info(f'Already on {desired}, nothing to do')
@@ -151,6 +173,7 @@ def main():
         return
 
     log.error(f'{desired} failed its health check, rolling back to {previous}')
+    record_bad_version(desired)
     if not swap_to(previous):
         log.error(f'Rollback to {previous} also failed its health check')
 
