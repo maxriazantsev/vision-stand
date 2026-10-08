@@ -22,8 +22,11 @@ RELEASES_LATEST_URL = (
     'https://api.github.com/repos/maxriazantsev/vision-stand/releases/latest'
 )
 IMAGE_REPO = 'ghcr.io/maxriazantsev/vision-stand'
-APP_SERVICE = 'vision-stand.service'
 APP_CONTAINER = 'vision-stand'
+# Every systemd unit that runs the versioned image and needs restarting on
+# a swap. Health is only checked against APP_CONTAINER; the others don't
+# have a health signal of their own.
+VERSIONED_SERVICES = ('vision-stand.service', 'vision-stand-foxglove.service')
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 log = logging.getLogger('updater')
@@ -115,8 +118,9 @@ def swap_to(tag):
 
     write_current_version(tag)
 
-    log.info(f'Restarting {APP_SERVICE} on {tag}')
-    subprocess.run(['systemctl', 'restart', APP_SERVICE], check=True)
+    for service in VERSIONED_SERVICES:
+        log.info(f'Restarting {service} on {tag}')
+        subprocess.run(['systemctl', 'restart', service], check=True)
 
     healthy = run_health_check()
     log.info(f"Health check after swap to {tag}: {'PASS' if healthy else 'FAIL'}")
