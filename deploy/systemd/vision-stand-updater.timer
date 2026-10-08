@@ -1,0 +1,9 @@
+[Unit]
+Description=Periodically run the Vision Stand fleet updater
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=2min
+
+[Install]
+WantedBy=timers.target

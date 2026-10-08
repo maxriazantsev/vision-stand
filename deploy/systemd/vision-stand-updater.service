@@ -1,0 +1,8 @@
+[Unit]
+Description=Vision Stand fleet updater (checks the latest GitHub release, one-shot)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/vision-stand/updater.py

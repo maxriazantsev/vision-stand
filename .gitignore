@@ -1,0 +1,21 @@
+# ROS 2 / colcon build artifacts
+build/
+install/
+log/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Python virtual envs
+.venv*/
+
+# Editor / OS junk
+*.swp
+*~
+.DS_Store
+
+.claude/settings.local.json
+.idea

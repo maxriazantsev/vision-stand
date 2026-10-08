@@ -1,0 +1,16 @@
+[Unit]
+Description=Vision Stand detector pipeline (containerized)
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=/etc/vision-stand/device.env
+ExecStartPre=-/usr/bin/docker rm -f vision-stand
+ExecStart=/bin/bash -c 'exec docker run --rm --name vision-stand --network host --ipc host -v /dev:/dev --device-cgroup-rule="c 81:* rmw" -e ROS_DOMAIN_ID=$ROS_DOMAIN_ID ghcr.io/maxriazantsev/vision-stand:$(cat /var/lib/vision-stand/current) ros2 launch detector pipeline.launch.py source:=$CAMERA_SOURCE compressed:=true'
+ExecStop=/usr/bin/docker stop vision-stand
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

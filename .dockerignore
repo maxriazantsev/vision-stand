@@ -1,0 +1,10 @@
+build/
+install/
+log/
+.venv*/
+.git/
+.idea/
+.claude/
+__pycache__/
+*.pyc
+perception/test_clip.mp4
