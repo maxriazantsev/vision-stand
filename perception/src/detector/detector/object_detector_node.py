@@ -262,10 +262,10 @@ class ObjectDetectorNode(Node):
                     cv2.LINE_AA)
         for x1, y1, x2, y2, class_id, score in detections:
             p1, p2 = (int(x1), int(y1)), (int(x2), int(y2))
-            cv2.rectangle(annotated, p1, p2, (0, 255, 0), 2)
+            cv2.rectangle(annotated, p1, p2, (0, 0, 255), 2)
             label = f'{COCO_CLASSES[class_id]} {score:.2f}'
             cv2.putText(annotated, label, (p1[0], max(p1[1] - 8, 0)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
         return annotated
 
     def _publish_annotated(self, frame, detections, header):
