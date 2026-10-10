@@ -97,9 +97,6 @@ class CameraNode(Node):
         return cap
 
     def tick(self):
-        # Deliberately broken for the rollback demo: no frames are published, so the post-swap health check fails.
-        return
-
         if not self.enabled:
             return
 
